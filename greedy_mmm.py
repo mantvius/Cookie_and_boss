@@ -48,30 +48,21 @@ def greedy_boss(days_in_simulation, bribe_cost_increment, plot_type = STANDARD):
             days_vs_earnings.append((current_day, earnings))
         else:
             days_vs_earnings.append([math.log(current_day), math.log(earnings)])
-
-        print
-        print "current_day:", current_day, ", money_at_hand:", money_at_hand, ", earnings:", earnings
         # check whether we have enough money to bribe without waiting
         while money_at_hand >= bribe_cost:
             money_at_hand -= bribe_cost
             current_salary += SALARY_INCREMENT
             bribe_cost += bribe_cost_increment
-            print "salary increased:", current_salary
-            print "bribe increased:", bribe_cost
-            print "money decreased:", money_at_hand
             # advance current_day to day of next bribe (DO NOT INCREMENT BY ONE DAY)
         day = current_day * 1
-        print "trying to increment day"
-        print "(bribe_cost - money_at_hand)/current_salary:", str(bribe_cost)+'-'+str(money_at_hand)+'/'+str(current_salary)+'= '+str((bribe_cost - money_at_hand)/float(current_salary))
         if (bribe_cost - money_at_hand)%current_salary != 0:
             current_day += (bribe_cost - money_at_hand)/current_salary + 1
         else:
             current_day += (bribe_cost - money_at_hand)/current_salary
+        # update state of simulation to reflect bribe
         money_at_hand += current_salary * (current_day - day)  # bribe_cost-money_at_hand
         earnings += current_salary * (current_day - day)  # bribe_cost-money_at_hand
 
-        # update state of simulation to reflect bribe
-   
     return days_vs_earnings
 
 
