@@ -49,7 +49,7 @@ def make_plot(fun1, fun2, plot_length):
     simpleplot.plot_lines("Growth rate comparison", 300, 300, "n", "f(n)/g(n)", [answer])
 
 # create an example plot
-make_plot(f, g, 1000)
+make_plot(f, g, 10000)
 
 
 
