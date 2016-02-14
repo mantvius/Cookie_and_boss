@@ -11,6 +11,7 @@ except ImportError:
     SIMPLEGUICS2PYGAME = True
 
 import poc_clicker_provided as provided
+import math
 
 # Used to increase the timeout, if necessary
 # try:
@@ -56,29 +57,32 @@ class ClickerState:
         in error messages to show you the state of your ClickerState object after you fail a test.
 
         """
-        return "Current state of affairs:\nCurrent no of cookies: "+str(self.get_cookies())
+        return "Current state of affairs:\n" \
+               "Current no of cookies: "+str(self.get_cookies())+"\n" \
+               "Current time: "+str(self.get_time())+"\n" \
+               "Current CPS: "+str(self.get_cps())+"\n" \
+               "Total no of cookies: "+str(self.total_cookies)
 
-        
     def get_cookies(self):
         """
         Return current number of cookies (not total number of cookies)
-        Should return a float
+        :rtype: float
         """
-        return 0.0
+        return self.current_cookies
     
     def get_cps(self):
         """
         Get current CPS
-        Should return a float
+        :rtype: float
         """
-        return 0.0
+        return self.current_cps
     
     def get_time(self):
         """
         Get current time
-        Should return a float
+        :rtype: float
         """
-        return 0.0
+        return self.current_time
     
     def get_history(self):
         """
@@ -88,15 +92,16 @@ class ClickerState:
         Should return a copy of any internal data structures,so that they will not be modified outside of the class.
         Note that get_history should return a copy of the history list so that you are not returning a reference
         to an internal data structure. This will prevent broken strategy function from inadvertently messing up history
+        :rtype: list
         """
-        return []
+        return self.history[:]
 
     def time_until(self, cookies):
         """
         Return num of seconds until you have the given numb of cookies(could be 0.0 if you already have enough cookies)
         You cannot wait for fractional seconds, so while you should return a float it should not have a fractional part.
         """
-        return 0.0
+        return math.floor((cookies - self.get_cookies()) / self.get_cps())
     
     def wait(self, time):
         """
@@ -104,7 +109,13 @@ class ClickerState:
         This method should "wait" for the given amount of time. This means you should appropriately increase the time,
         the current number of cookies, and the total number of cookies.
         """
-        pass
+        if time <= 0:
+            return
+        else:
+            self.current_time += time
+            self.current_cookies += time * self.current_cps
+            self.total_cookies += time * self.current_cps
+            return
     
     def buy_item(self, item_name, cost, additional_cps):
         """
@@ -113,8 +124,13 @@ class ClickerState:
         If a method is passed an argument that is invalid (such as an attempt to buy an item for which you
         do not have enough cookies),you should just return from the method without doing anything.
         """
-        pass
-   
+        if self.get_cookies() < cost:
+            return
+        else:
+            self.current_cookies -= cost
+            self.current_cps += additional_cps
+            self.history.append((self.get_time(), item_name, cost, self.total_cookies))
+
     
 def simulate_clicker(build_info, duration, strategy):
     """
