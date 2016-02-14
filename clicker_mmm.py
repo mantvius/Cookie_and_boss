@@ -2,13 +2,13 @@
 Cookie Clicker Simulator
 """
 
-try:
-    import simpleplot
-    SIMPLEGUICS2PYGAME = False
-
-except ImportError:
-    import SimpleGUICS2Pygame.simpleplot as simpleplot
-    SIMPLEGUICS2PYGAME = True
+# try:
+#     import simpleplot
+#     SIMPLEGUICS2PYGAME = False
+#
+# except ImportError:
+#     import SimpleGUICS2Pygame.simpleplot as simpleplot
+#     SIMPLEGUICS2PYGAME = True
 
 import poc_clicker_provided as provided
 import math
@@ -44,11 +44,11 @@ class ClickerState:
     """
 
     def __init__(self):
-        self.total_cookies = 0.0
-        self.current_cookies = 0.0
-        self.current_time = 0.0
-        self.current_cps = 0.0
-        self.history = [(0.0, None, 0.0, 0.0)]
+        self._total_cookies = 0.0
+        self._current_cookies = 0.0
+        self._current_time = 0.0
+        self._current_cps = 1.0
+        self._history = [(0.0, None, 0.0, 0.0)]
         
     def __str__(self):
         """
@@ -61,28 +61,28 @@ class ClickerState:
                "Current no of cookies: "+str(self.get_cookies())+"\n" \
                "Current time: "+str(self.get_time())+"\n" \
                "Current CPS: "+str(self.get_cps())+"\n" \
-               "Total no of cookies: "+str(self.total_cookies)
+               "Total no of cookies: "+str(self._total_cookies)
 
     def get_cookies(self):
         """
         Return current number of cookies (not total number of cookies)
         :rtype: float
         """
-        return self.current_cookies
+        return self._current_cookies
     
     def get_cps(self):
         """
         Get current CPS
         :rtype: float
         """
-        return self.current_cps
+        return self._current_cps
     
     def get_time(self):
         """
         Get current time
         :rtype: float
         """
-        return self.current_time
+        return self._current_time
     
     def get_history(self):
         """
@@ -94,14 +94,17 @@ class ClickerState:
         to an internal data structure. This will prevent broken strategy function from inadvertently messing up history
         :rtype: list
         """
-        return self.history[:]
+        return self._history[:]
 
     def time_until(self, cookies):
         """
         Return num of seconds until you have the given numb of cookies(could be 0.0 if you already have enough cookies)
         You cannot wait for fractional seconds, so while you should return a float it should not have a fractional part.
         """
-        return math.floor((cookies - self.get_cookies()) / self.get_cps())
+        if self.get_cookies() >= cookies:
+            return 0.0
+        else:
+            return math.floor((cookies - self.get_cookies()) / self.get_cps())
     
     def wait(self, time):
         """
@@ -112,9 +115,9 @@ class ClickerState:
         if time <= 0:
             return
         else:
-            self.current_time += time
-            self.current_cookies += time * self.current_cps
-            self.total_cookies += time * self.current_cps
+            self._current_time += time
+            self._current_cookies += time * self._current_cps
+            self._total_cookies += time * self._current_cps
             return
     
     def buy_item(self, item_name, cost, additional_cps):
@@ -127,11 +130,19 @@ class ClickerState:
         if self.get_cookies() < cost:
             return
         else:
-            self.current_cookies -= cost
-            self.current_cps += additional_cps
-            self.history.append((self.get_time(), item_name, cost, self.total_cookies))
+            self._current_cookies -= cost
+            self._current_cps += additional_cps
+            self._history.append((self.get_time(), item_name, cost, self._total_cookies))
 
-    
+
+# obj = ClickerState()
+# obj.wait(78.0)
+# obj.buy_item('item', 1.0, 1.0)
+# print obj.time_until(22.0)
+# print obj
+# print obj._history
+
+
 def simulate_clicker(build_info, duration, strategy):
     """
     Function to run a Cookie Clicker game for the given duration with the given strategy.
@@ -213,6 +224,8 @@ def run():
     # run_strategy("Best", SIM_TIME, strategy_best)
 
 
-run()
-if SIMPLEGUICS2PYGAME:
-    simpleplot._block()
+#run()
+
+# if SIMPLEGUICS2PYGAME:
+#     simpleplot._block()
+
