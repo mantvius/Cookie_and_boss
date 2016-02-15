@@ -144,16 +144,16 @@ def simulate_clicker(build_info, duration, strategy):
     my_object = build_info.clone()
     state_of_affairs = ClickerState()
     exitus = False
-
     # The function should then loop until the time in the ClickerState object reaches the duration of the simulation.
     while state_of_affairs.get_time() <= duration and not exitus:
-        print "starting loop: current time:", state_of_affairs.get_time()
+#        print "starting loop: current time:", state_of_affairs.get_time()
 
         # Check the current time and break out of the loop if the duration has been passed.
         # Call the strategy function with the appropriate arguments to determine which item to purchase next.
+
         item_to_purchase = strategy(state_of_affairs.get_cookies(), state_of_affairs.get_cps(),
                                     state_of_affairs.get_history(), duration - state_of_affairs.get_time(), my_object)
-        print "strategy provides item:", item_to_purchase
+#        print "strategy provides item:", item_to_purchase
 
         # If the strategy function returns None, you should break out of the loop, no more items will be purchased.
         if item_to_purchase is None:
@@ -161,11 +161,11 @@ def simulate_clicker(build_info, duration, strategy):
         else:
             # Determine how much time must elapse until it is possible to purchase the item.
             time_needed = state_of_affairs.time_until(my_object.get_cost(item_to_purchase))
-            print "cost of item:", my_object.get_cost(item_to_purchase)
-            print "current cps: ", state_of_affairs.get_cps()
-            print "time needed: ", time_needed
-            print
-
+            # print "cost of item:", my_object.get_cost(item_to_purchase)
+            # print "current cps: ", state_of_affairs.get_cps()
+            # print "time needed: ", time_needed
+            # print
+            #
             # If you would have to wait past duration of simulation to purchase the item, you should end the simulation.
             if time_needed > duration - state_of_affairs.get_time():
                 exitus = True
@@ -175,21 +175,21 @@ def simulate_clicker(build_info, duration, strategy):
                 # Buy the item.
                 state_of_affairs.buy_item(item_to_purchase, my_object.get_cost(item_to_purchase),
                                           my_object.get_cps(item_to_purchase))
-                print "Bought item."
-                print state_of_affairs
+                # print "Bought item."
+                # print state_of_affairs
                 # Update the build information.
                 my_object.update_item(item_to_purchase)
-                print "Updated object."
-                print "cps of object:", my_object.get_cps(item_to_purchase)
-                print
-    print "state of affairs before final wait:\n", state_of_affairs
-    print "history:\n", state_of_affairs.get_history()
-    print
-    print "time left: ", duration - state_of_affairs.get_time()
+                # print "Updated object."
+                # print "cps of object:", my_object.get_cps(item_to_purchase)
+                # print
+    # print "state of affairs before final wait:\n", state_of_affairs
+    # print "history:\n", state_of_affairs.get_history()
+    # print
+    # print "time left: ", duration - state_of_affairs.get_time()
     state_of_affairs.wait(duration - state_of_affairs.get_time())
-    print
-    print "state of affairs after final wait:\n", state_of_affairs
-    print
+    # print
+    # print "state of affairs after final wait:\n", state_of_affairs
+    # print
     # print "trying to buy after final wait:"
     # items_available = []
     # for item in my_object.build_items():
@@ -249,21 +249,95 @@ def strategy_cheap(cookies, cps, history, time_left, build_info):
     """
     Always buy the cheapest item you can afford in the time left.
     """
-    return None
+    print
+    print "STRATEGY PART BEGIN"
+    print
+    items_available = []
+    for item in build_info.build_items():
+        items_available.append(item)
+    while items_available:
+        min_cost = float('inf')
+        for item in items_available:
+            #print "item:", item, ", cost:", build_info.get_cost(item)
+            if build_info.get_cost(item) < min_cost:
+                min_cost = build_info.get_cost(item)
+                cheapest = item
+        print "cheapest:", cheapest
+        # check if time enough
+        print "checking time"
+        print "time left:", time_left
+        print "cost:", min_cost
+        print "cookies can be produced:", cps * time_left
+        if cps * time_left + cookies < min_cost:
+            print "not enough,"
+            return None
+        else:
+            print cheapest, "chosen"
+            print "STRATEGY PART END"
+            print
+            return cheapest
 
 
 def strategy_expensive(cookies, cps, history, time_left, build_info):
     """
     Always buy the most expensive item you can afford in the time left.
     """
-    return None
+    print
+    print "STRATEGY PART BEGIN"
+    print
+    items_available = []
+    for item in build_info.build_items():
+        items_available.append(item)
+    while items_available:
+        max_cost = 0
+        for item in items_available:
+            #print "item:", item, ", cost:", build_info.get_cost(item)
+            if build_info.get_cost(item) > max_cost:
+                max_cost = build_info.get_cost(item)
+                most_expensive = item
+        print "most expensive:", most_expensive
+        # check if time enough
+        print "checking time"
+        print "time left:", time_left
+        print "cost:", max_cost
+        print "cookies can be produced:", cps * time_left
+        if cps * time_left + cookies < max_cost:
+            items_available.remove(most_expensive)
+            print "not enough,", most_expensive, "removed"
+            print
+        else:
+            print most_expensive, "chosen"
+            print "STRATEGY PART END"
+            print
+            return most_expensive
 
 
 def strategy_best(cookies, cps, history, time_left, build_info):
     """
     The best strategy that you are able to implement.
     """
-    return None
+    print "STRATEGY BEGINS"
+    items_available = []
+    for item in build_info.build_items():
+        items_available.append(item)
+    item_to_buy = None
+    max_profit = float('-inf')
+    for item in items_available:
+        if cps * time_left + cookies >= build_info.get_cost(item):
+            if cookies >= build_info.get_cost(item):
+                time_to_bake = 0.0
+            else:
+                time_to_bake = math.ceil((build_info.get_cost(item) - cookies) / cps)
+            additional_cookies = build_info.get_cps(item) * (time_left - time_to_bake)
+
+            profit = additional_cookies - build_info.get_cost(item)
+            print "item:", item, ", cost:", build_info.get_cost(item), ", time_to_bake:", time_to_bake, ", profit:", profit
+            if profit > max_profit:
+                max_profit = profit
+                item_to_buy = item
+                #print "max_profit:", max_profit
+    print "STRATEGY ENDS"
+    return item_to_buy
 
         
 def run_strategy(strategy_name, time, strategy):
@@ -288,12 +362,13 @@ def run():
     # Add calls to run_strategy to run additional strategies
     # run_strategy("Cheap", SIM_TIME, strategy_cheap)
     # run_strategy("Expensive", SIM_TIME, strategy_expensive)
-    # run_strategy("Best", SIM_TIME, strategy_best)
-    run_strategy("None", SIM_TIME, strategy_none)
+    run_strategy("Best", SIM_TIME, strategy_best)
+    # run_strategy("None", SIM_TIME, strategy_none)
+
+# strategy_expensive(cookies, cps, history, time_left, build_info)
 
 
-
-#run()
+run()
 
 # if SIMPLEGUICS2PYGAME:
 #     simpleplot._block()
